@@ -1,0 +1,215 @@
+<template>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <i class="bi bi-person-plus-fill display-1 text-primary"></i>
+            <h2 class="mt-3">Create Account</h2>
+            <p class="text-muted">Join our employee management system</p>
+          </div>
+
+          <form @submit.prevent="handleSignup" class="auth-form">
+            <div class="mb-3">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-person"></i>
+                </span>
+                <input
+                    v-model="form.name"
+                    type="text"
+                    class="form-control"
+                    required
+                    placeholder="Enter your name"
+                >
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-envelope"></i>
+                </span>
+                <input
+                    v-model="form.email"
+                    type="email"
+                    class="form-control"
+                    required
+                    placeholder="Enter your email"
+                >
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-lock"></i>
+                </span>
+                <input
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="form-control"
+                    required
+                    placeholder="Enter your password"
+                >
+                <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    @click="showPassword = !showPassword"
+                >
+                  <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-shield-lock"></i>
+                </span>
+                <input
+                    v-model="form.confirmPassword"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    class="form-control"
+                    required
+                    placeholder="Confirm your password"
+                >
+                <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    @click="showConfirmPassword = !showConfirmPassword"
+                >
+                  <i class="bi" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button
+                  type="submit"
+                  class="btn btn-primary btn-lg"
+                  :disabled="loading || !isValidForm"
+              >
+                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-person-plus me-2"></i>
+                Sign Up
+              </button>
+            </div>
+          </form>
+
+          <div class="text-center mt-4">
+            <p class="mb-0">Already have an account?
+              <router-link to="/login" class="text-primary text-decoration-none">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+              </router-link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import {ref, computed} from 'vue';
+import {useRouter} from 'vue-router';
+import {useAuthStore} from '../stores/authStores.js';
+import {useToast} from 'vue-toastification';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const toast = useToast();
+
+const form = ref({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+});
+
+const loading = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+const isValidForm = computed(() => {
+  return form.value.password === form.value.confirmPassword &&
+      form.value.password.length >= 6;
+});
+
+async function handleSignup() {
+  if (!isValidForm.value) {
+    toast.error('Passwords do not match or are too short (min 6 characters)');
+    return;
+  }
+
+  try {
+    loading.value = true;
+    await authStore.signup(form.value);
+    router.push('/login');
+    toast.success('Successfully signed up! Please login.');
+  } catch (error) {
+    toast.error(error.message || 'Failed to sign up');
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
+
+<style scoped>
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form .input-group-text {
+  background-color: transparent;
+  border-right: none;
+  padding: 0.5rem 1rem;
+  min-width: 46px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-form .form-control {
+  border-left: none;
+  padding-left: 0.5rem;
+}
+
+.auth-form .input-group:focus-within {
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+  border-radius: 0.375rem;
+}
+
+.auth-form .input-group:focus-within .input-group-text,
+.auth-form .input-group:focus-within .form-control {
+  border-color: var(--primary-color);
+}
+
+.btn-primary {
+  padding: 0.8rem 1.5rem;
+  font-weight: 500;
+}
+
+.display-1 {
+  font-size: 3.5rem;
+}
+
+.auth-form .bi {
+  font-size: 1.2rem;
+}
+</style>

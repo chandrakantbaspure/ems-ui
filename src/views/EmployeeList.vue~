@@ -1,0 +1,208 @@
+<template>
+  <div class="employee-list">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Employee List</h2>
+      <router-link to="/employee/add" class="btn btn-primary">
+        <i class="bi bi-plus"></i> Add Employee
+      </router-link>
+    </div>
+
+    <SearchFilters
+        :departments="departments"
+        @filter="handleFilters"
+        @reset="resetFilters"
+    />
+
+    <LoadingSpinner v-if="employeeStore.loading" />
+
+    <EmptyState
+        v-else-if="filteredEmployees.length === 0"
+        icon="bi-people"
+        title="No Employees Found"
+        message="Try adjusting your search or filters"
+    />
+
+    <template v-else>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Age</th>
+            <th>Salary</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="employee in currentPageEmployees" :key="employee.employeeId">
+            <td>{{ employee.employeeId }}</td>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.department }}</td>
+            <td>{{ employee.designation }}</td>
+            <td>{{ employee.age }}</td>
+            <td>{{ formatSalary(employee.salary) }}</td>
+            <td>
+              <div class="btn-group">
+                <router-link
+                    :to="`/employee/edit/${employee.employeeId}`"
+                    class="btn btn-sm btn-outline-primary"
+                >
+                  <i class="bi bi-pencil"></i>
+                </router-link>
+                <button
+                    @click="confirmDelete(employee)"
+                    class="btn btn-sm btn-outline-danger"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <Pagination
+          :current-page="employeeStore.currentPage"
+          :total-pages="employeeStore.totalPages"
+          @page-change="handlePageChange"
+      />
+    </template>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useEmployeeStore } from '../stores/employeeStore';
+import { useToast } from 'vue-toastification';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
+import EmptyState from '../components/EmptyState.vue';
+import SearchFilters from '../components/SearchFilters.vue';
+import Pagination from '../components/Pagination.vue';
+import { formatSalary } from '../utils/formatters';
+
+const employeeStore = useEmployeeStore();
+const toast = useToast();
+
+const searchQuery = ref('');
+const dateFilter = ref('');
+const selectedSort = ref({
+  label: 'Name (A-Z)',
+  value: 'name',
+  order: 'asc'
+});
+
+const departments = computed(() => {
+  const depts = new Set(employeeStore.employees.map(emp => emp.department));
+  return Array.from(depts);
+});
+
+const filteredEmployees = computed(() => {
+  let filtered = [...employeeStore.employees];
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(emp =>
+        emp.name.toLowerCase().includes(query) ||
+        emp.employeeId.toString().includes(query)
+    );
+  }
+
+  if (dateFilter.value) {
+    filtered = filtered.filter(emp =>
+        new Date(emp.joiningDate) >= new Date(dateFilter.value)
+    );
+  }
+
+  return filtered;
+});
+
+const currentPageEmployees = computed(() => {
+  const startIndex = (employeeStore.currentPage - 1) * 10;
+  const endIndex = startIndex + 10;
+  return filteredEmployees.value.slice(startIndex, endIndex);
+});
+
+async function confirmDelete(employee) {
+  if (confirm(`Are you sure you want to delete ${employee.name}?`)) {
+    try {
+      await employeeStore.deleteEmployee(employee.employeeId);
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+    }
+  }
+}
+
+async function handleSort() {
+  try {
+    await employeeStore.sortEmployees(selectedSort.value.value, selectedSort.value.order);
+  } catch (error) {
+    console.error('Error sorting employees:', error);
+  }
+}
+
+function handleFilters({ search, department, date }) {
+  searchQuery.value = search;
+  dateFilter.value = date;
+  if (department) {
+    selectedSort.value = {
+      label: 'Department',
+      value: 'department',
+      order: 'asc'
+    };
+    handleSort();
+  }
+}
+
+function resetFilters() {
+  searchQuery.value = '';
+  dateFilter.value = '';
+  selectedSort.value = {
+    label: 'Name (A-Z)',
+    value: 'name',
+    order: 'asc'
+  };
+  handleSort();
+}
+
+function handlePageChange(page) {
+  employeeStore.currentPage = page;
+}
+
+onMounted(async () => {
+  if (!employeeStore.employees.length) {
+    await employeeStore.fetchEmployees();
+  }
+});
+</script>
+
+<style scoped>
+.employee-list {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.table {
+  background-color: var(--card-background);
+}
+
+.table th {
+  background-color: var(--card-background);
+  border-bottom-color: var(--border-color);
+}
+
+.table td {
+  border-bottom-color: var(--border-color);
+}
+
+.btn-group {
+  gap: 0.5rem;
+}
+</style>

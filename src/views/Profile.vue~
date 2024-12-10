@@ -1,0 +1,95 @@
+<script>
+import { useAuthStore } from "../stores/authStores.js";
+import axios from "axios";
+import { ref, computed } from 'vue';
+
+export default {
+  setup() {
+    const authStore = useAuthStore();
+    const BASE_URL = "http://localhost:8082/api";
+    const userData = ref({});
+    const isLoading = ref(true);
+    const errorOccurred = ref(false);
+
+    const fetchUserData = async () => {
+      try {
+        const decodedString = atob(localStorage.getItem("auth")).replace(/%20/g, ' ').replace(/\+/g, '');
+        const [email, password] = decodedString.split(':');
+
+        const response = await axios.get(BASE_URL + "/auth/user/" + email);
+        userData.value = response.data;
+        isLoading.value = false;
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        errorOccurred.value = true;
+      }
+    };
+
+    return {
+      authStore,
+      userData,
+      fetchUserData,
+      isLoading,
+      errorOccurred
+    };
+  },
+  mounted() {
+    this.fetchUserData();
+  }
+}
+</script>
+
+<template>
+  <div class="container mt-6">
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-8">
+        <div class="card shadow-sm border-0 rounded-lg my-5 overflow-hidden">
+          <div class="card-header p-4 bg-gradient-primary-to-secondary bg-opacity-75 text-black text-center font-weight-light">
+            <h3 class="text-center  my-4">Profile</h3>
+          </div>
+          <div class="card-body p-5">
+            <form @submit.prevent="fetchUserData()">
+              <div v-if="isLoading" class="d-flex justify-content-center mb-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+              <div v-else-if="errorOccurred" class="alert alert-danger" role="alert" style="margin-bottom: 20px;">
+                Error fetching user data. Please try again later.
+              </div>
+              <div v-else class="row g-4">
+                <div class="col-md-6">
+                  <label for="employeeId" class="form-label">Employee ID</label>
+                  <input type="text" class="form-control form-control-lg" id="employeeId" :value="userData.id" readonly>
+                  <label for="name" class="form-label mt-3">Name</label>
+                  <input type="text" class="form-control form-control-lg" id="name" :value="userData.name" readonly>
+                  <label for="email" class="form-label mt-3">Email</label>
+                  <input type="email" class="form-control form-control-lg" id="email" :value="userData.email" readonly>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.card {
+  min-height: 500px;
+}
+
+.form-control-lg {
+  font-size: 18px;
+  padding: 15px;
+}
+
+.card-header {
+  border-bottom: none;
+}
+
+.card-body {
+  padding-top: 0;
+}
+</style>

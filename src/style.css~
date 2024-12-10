@@ -1,0 +1,142 @@
+:root {
+  --primary-color: #646cff;
+  --secondary-color: #535bf2;
+  --background-color: #f8f9fa;
+  --text-color: #213547;
+  --text-muted: #6c757d;
+  --card-background: #ffffff;
+  --border-color: #dee2e6;
+  --hover-bg: rgba(0, 0, 0, 0.02);
+  --chart-colors: #FF6384, #36A2EB, #FFCE56, #4BC0C0, #9966FF, #FF9F40;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --gradient-primary: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  --transition-speed: 0.3s;
+}
+
+[data-theme="dark"] {
+  --primary-color: #747bff;
+  --secondary-color: #646cff;
+  --background-color: #1a1a1a;
+  --text-color: rgba(255, 255, 255, 0.95);
+  --text-muted: rgba(255, 255, 255, 0.65);
+  --card-background: #242424;
+  --border-color: #373737;
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
+body {
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  transition: opacity var(--transition-speed);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.table {
+  color: var(--text-color);
+  transition: background-color var(--transition-speed);
+}
+
+.table thead th {
+  background-color: var(--card-background);
+  border-bottom-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.table td {
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.form-control, .form-select {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  color: var(--text-color);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--card-background);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+}
+
+.navbar {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed);
+}
+
+.stat-card {
+  background: linear-gradient(145deg, var(--card-background), var(--background-color));
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.chart-container {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-speed);
+}
+
+.chart-container:hover {
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-enter-active {
+  animation: fadeIn var(--transition-speed) ease-out;
+}
+
+.fade-leave-active {
+  animation: fadeIn var(--transition-speed) ease-in reverse;
+}
